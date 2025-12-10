@@ -42,13 +42,7 @@ resource "google_compute_subnetwork" "private_subnet_1" {
   private_ip_google_access = true
 }
 
-resource "google_compute_subnetwork" "private_subnet_2" {
-  name          = "dt-sandbox-subnet-2"
-  ip_cidr_range = "10.0.2.0/24"
-  region        = var.region
-  network       = google_compute_network.vpc.id
-  private_ip_google_access = true
-}
+
 
 # Cloud NAT for outbound internet access
 resource "google_compute_router" "router" {
@@ -104,32 +98,4 @@ resource "google_container_node_pool" "primary_nodes" {
       mode = "GKE_METADATA"
     }
   }
-
-  depends_on = [google_gke_hub_feature.servicemesh]
-}
-
-# Enable Mesh Config API for Istio
-resource "google_project_service" "meshconfig" {
-  service            = "meshconfig.googleapis.com"
-  disable_on_destroy = false
-}
-
-# GKE Hub Membership
-resource "google_gke_hub_membership" "membership" {
-  provider     = google-beta
-  membership_id = "dt-sandbox-membership"
-  endpoint {
-    gke_cluster {
-      resource_link = "//container.googleapis.com/${google_container_cluster.primary.id}"
-    }
-  }
-  depends_on = [google_project_service.meshconfig]
-}
-
-# Istio Service Mesh
-resource "google_gke_hub_feature" "servicemesh" {
-  provider   = google-beta
-  name       = "servicemesh"
-  location   = "global"
-  depends_on = [google_gke_hub_membership.membership]
 }

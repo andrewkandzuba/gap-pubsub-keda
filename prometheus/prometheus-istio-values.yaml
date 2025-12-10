@@ -1,0 +1,43 @@
+# This values file configures the kube-prometheus-stack to work with Istio.
+
+# Configure Prometheus to scrape Istio-enabled services.
+prometheus:
+  prometheusSpec:
+    # This allows Prometheus to scrape pods that have an Istio sidecar.
+    # It adds the necessary annotations to the Prometheus pods to handle mTLS.
+    podMetadata:
+      annotations:
+        sidecar.istio.io/inject: "true"
+        # This tells the Istio sidecar to rewrite the Prometheus scrape configs.
+        # It enables Prometheus to scrape metrics from mTLS-enabled endpoints.
+        prometheus.istio.io/rewrite-app-http-probes: "true"
+
+# Enable Istio-specific Grafana dashboards.
+grafana:
+  # This adds the official Istio dashboards to Grafana.
+  sidecar:
+    dashboards:
+      enabled: true
+      # This label is used by the sidecar to find the dashboard ConfigMaps.
+      # The Istio dashboards are pre-configured with this label.
+      label: "istio-grafana-dashboards"
+
+# Enable and configure the Prometheus Adapter to expose custom metrics.
+prometheus-adapter:
+  enabled: true
+  rules:
+    # This is a default set of rules that discovers metrics from pods
+    # with the 'prometheus.io/scrape: "true"' annotation.
+    default: true
+    custom: []
+    # Example of a custom rule:
+    # - seriesQuery: '{__name__=~"^some_metric_name$"}'
+    #   resources:
+    #     overrides:
+    #       kubernetes_namespace: {resource: "namespace"}
+    #       kubernetes_pod_name: {resource: "pod"}
+    #   name:
+    #     matches: "^(.*)$"
+    #     as: "${1}"
+    #   metricsQuery: 'sum(<<.Series>>{<<.LabelMatchers>>}) by (<<.GroupBy>>)'
+

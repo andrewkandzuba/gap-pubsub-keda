@@ -17,8 +17,3 @@ output "subnet_1_name" {
   description = "Private subnet 1 name"
   value       = google_compute_subnetwork.private_subnet_1.name
 }
-
-output "subnet_2_name" {
-  description = "Private subnet 2 name"
-  value       = google_compute_subnetwork.private_subnet_2.name
-}
