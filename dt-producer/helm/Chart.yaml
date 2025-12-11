@@ -1,0 +1,7 @@
+apiVersion: v2
+name: dt-producer
+description: A Helm chart for the dt-producer application
+type: application
+version: 0.1.0
+appVersion: "1.0"
+

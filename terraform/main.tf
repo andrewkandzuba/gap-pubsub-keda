@@ -42,8 +42,6 @@ resource "google_compute_subnetwork" "private_subnet_1" {
   private_ip_google_access = true
 }
 
-
-
 # Cloud NAT for outbound internet access
 resource "google_compute_router" "router" {
   name    = "dt-sandbox-router"
@@ -76,6 +74,10 @@ resource "google_container_cluster" "primary" {
     workload_pool = "${var.project_id}.svc.id.goog"
   }
 
+  node_config {
+    service_account = var.service_account_email
+  }
+
   remove_default_node_pool = true
   initial_node_count       = 1
   deletion_protection      = false
@@ -97,5 +99,42 @@ resource "google_container_node_pool" "primary_nodes" {
     workload_metadata_config {
       mode = "GKE_METADATA"
     }
+    service_account = var.service_account_email
   }
+}
+
+# Enable Pub/Sub API
+resource "google_project_service" "pubsub" {
+  service            = "pubsub.googleapis.com"
+  disable_on_destroy = false
+}
+
+# Create a Pub/Sub topic
+resource "google_pubsub_topic" "dt_message" {
+  name                       = "dt-message"
+  project                    = var.project_id
+  message_retention_duration = "600s"
+  depends_on = [google_project_service.pubsub]
+}
+
+# Create a Pub/Sub subscription to the dt-message topic
+resource "google_pubsub_subscription" "dt_message_subscription" {
+  name  = "dt-message-subscription"
+  topic = google_pubsub_topic.dt_message.name
+  project = var.project_id
+
+  # Retain messages for 10 minutes
+  message_retention_duration = "600s"
+  # Set the acknowledgment deadline to 20 seconds
+  ack_deadline_seconds = 20
+
+  # Enable message ordering if needed
+  # enable_message_ordering = false
+
+  # Set a retry policy
+  retry_policy {
+    minimum_backoff = "10s"
+  }
+
+  depends_on = [google_pubsub_topic.dt_message]
 }

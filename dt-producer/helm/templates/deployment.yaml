@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dt-producer
+  namespace: producer
+  annotations:
+    iam.gke.io/gcp-service-account: {{ .Values.serviceAccount.email }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: producer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dt-producer
+  namespace: producer
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: dt-producer
+  template:
+    metadata:
+      labels:
+        app: dt-producer
+    spec:
+      serviceAccountName: dt-producer
+      containers:
+        - name: dt-producer
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: PROJECT_ID
+              value: {{ .Values.projectId }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dt-producer
+  namespace: producer
+spec:
+  selector:
+    app: dt-producer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+
