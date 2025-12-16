@@ -21,6 +21,7 @@ kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f 
 echo "Installing kube-prometheus-stack Helm chart into 'monitoring' namespace..."
 # This chart includes Prometheus, Grafana, and the Prometheus Adapter for custom metrics.
 helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring -f prometheus-istio-values.yaml --wait
+# 5. DepLoy the Prometheus Adapter separately to ensure it's configured correctly
 helm install prometheus-adapter prometheus-community/prometheus-adapter \
       --namespace monitoring \
       --set prometheus.url="http://prometheus-operated.monitoring.svc.cluster.local" \
