@@ -94,7 +94,7 @@ resource "google_container_node_pool" "primary_nodes" {
     # Spot instances can be terminated by Google Cloud at any time with only 30 seconds notice,
     # which can cause unexpected pod evictions. It is recommended to run only stateless workloads
     # or ensure your workloads can handle graceful shutdowns and interruptions.
-    spot = true
+    # spot = true
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/logging.write",
